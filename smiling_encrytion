@@ -1,0 +1,102 @@
+import matplotlib.pyplot as plt
+from qiskit import QuantumCircuit, transpile
+from qiskit import Aer
+import numpy as np
+from qiskit.visualization import plot_histogram
+from qiskit.circuit import Parameter
+import math
+pi = math.pi
+x = np.array([[240,55,240,240,240,240,55, 240],
+[55, 240, 55, 240,240,55,240, 55],
+[55, 240, 55, 240, 240,55, 240, 55],
+[240, 240, 240, 55, 55, 240, 240, 240],
+[55, 240, 240, 55, 55, 240, 240, 55],
+[240, 55, 240, 240, 240, 240, 55, 240],
+[240, 240, 55, 240, 240, 55, 240, 240],
+[240, 240, 240, 55, 55, 240, 240, 240]])
+# image = Image.fromarray(x.astype('uint8'))
+# image.save("Smile.png")
+# plt.imshow(x, cmap='gray')
+# plt.axis('off')
+# plt.show()
+#change to list
+e=x.tolist()
+
+# unnesting
+flattened_e = [float(item) for sublist in e for item in sublist]
+print(flattened_e)
+
+# normalized
+sum_of_squares = sum(num**2 for num in flattened_e)
+normalized_list = [num / math.sqrt(sum_of_squares) for num in flattened_e]
+
+# Encoding
+qc = QuantumCircuit(6)
+qc.initialize(normalized_list, [0,1,2,3,4,5])
+
+# State before encoding
+# qc.measure([],[])
+backend = Aer.get_backend('statevector_simulator')
+# job = backend.run(qc)
+# result = job.result()
+# outputstate = result.get_statevector(qc, decimals=3)
+#
+# counts  = result.get_counts(qc)
+# plot_histogram(counts,figsize=(40,20))
+# plt.show()
+# qc.decompose().decompose().decompose().decompose().decompose().decompose().decompose().decompose().decompose().draw(scale=0.3,filename='encoding.png')
+# plt.show()
+
+
+# Encryption
+phi = Parameter('phi')
+qc.ry(phi, 0)
+qc.ry(phi, 1)
+qc.ry(phi, 2)
+qc.ry(phi, 3)
+qc.ry(phi, 4)
+qc.ry(phi, 5)
+
+# circuit encryption
+bc = qc.bind_parameters({phi: 256*pi*0.05})
+# bc.draw()
+# plt.show()
+bc.measure([],[])
+
+# Use Aer's AerSimulator
+
+job = backend.run(bc)
+result = job.result()
+outputstate = result.get_statevector(bc, decimals=3)
+c=np.array(outputstate)
+
+# print(c)
+
+# show vector
+counts  = result.get_counts(bc)
+plot_histogram(counts,figsize=(60,20),filename='state.png')
+plt.show()
+
+# Convert to real part
+real_array = np.real(c)
+print(real_array.shape)
+#reshape
+r = real_array.reshape((8, 8))
+#absolute
+absolute_r = np.abs(r)
+print(np.max(absolute_r))
+
+# scale
+absolute_r = absolute_r*400
+print(np.max(absolute_r))
+
+#show
+plt.imshow(absolute_r, cmap='gray')
+plt.axis('off')
+plt.show()
+#
+# # saving
+# image = Image.fromarray(absolute_r.astype('uint8'))
+# image.save("SmileENCRY.png")
+#
+#
