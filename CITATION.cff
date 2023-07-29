@@ -1,0 +1,6 @@
+authors:
+  - family-names: Zhang
+    given-names: Jiale
+cff-version: 1.2.0
+message: "Codes in FGIPS"
+title: "FGIPS"
